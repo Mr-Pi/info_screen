@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include <raylib.h>
 #include <unistd.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
 
 #include "config.h"
 #include "log.h"

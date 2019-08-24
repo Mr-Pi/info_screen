@@ -71,12 +71,17 @@ typedef struct screen_evals {
 	lua_State *lua_state;
 } screen_evals;
 
+typedef struct screen_attr_slide {
+	uint_fast16_t default_interval;
+	char *name;
+} screen_attr_slide;
+
 typedef struct screen_element {
 	uint_fast32_t id;
 	screen_element_type type;
 	screen_position position;
 	void *attrs;
-	void *evals;
+	screen_evals *evals;
 } screen_element;
 
 typedef struct type_frame {
@@ -92,11 +97,11 @@ Color screen_default_color;
 
 
 void *screen(void *_);
-uint_fast16_t screen_add_clock(const screen_position position, char *format, const uint_fast16_t font_size, const char *font, const Color color);
-uint_fast16_t screen_add_text(const screen_position position, const char *text, const uint_fast16_t font_size, const char *font, Color color);
+uint_fast16_t screen_add_clock(const screen_position position, char *format, const uint_fast16_t font_size, const char *font, const Color color, char *lua_script);
+uint_fast16_t screen_add_text(const screen_position position, const char *text, const uint_fast16_t font_size, const char *font, Color color, char *lua_script);
 void screen_remove_element(uint_fast16_t element_id);
 screen_attrs_img *screen_prepare_image(screen_position *position, screen_resize resize_type, char *file, Color *background_color);
-uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_img img);
+uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_img img, char *lua_script);
 
 
 #endif

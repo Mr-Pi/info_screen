@@ -123,7 +123,6 @@ void screen_resize_image(Image *image, screen_resize resize_method, uint_fast16_
  * and alignment jobs
  *
  * TODO: error check file
- * TODO: image position
  * TODO: gradient
  ******************************************************************************/
 screen_attrs_img *screen_prepare_image(screen_position *position, screen_resize resize_type, char *file, Color *background_color) {
@@ -187,7 +186,7 @@ screen_attrs_img *screen_prepare_image(screen_position *position, screen_resize 
 	return attrs;
 }
 
-uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_img attr_img_in) {
+uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_img attr_img_in, char *lua_script) {
 	screen_elements_count++;
 	REALLOC(new_screen_elements, screen_elements, sizeof(screen_element) * screen_elements_count);
 
@@ -204,6 +203,14 @@ uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_
 	attr_img->resize_type = attr_img_in.resize_type;
 	attr_img->image = ImageCopy(attr_img_in.image);
 
+	if( lua_script != NULL ) {
+		MALLOC(screen_elements[screen_elements_count-1].evals, sizeof(screen_evals));
+		screen_elements[screen_elements_count-1].evals->lua_state = NULL;
+		screen_elements[screen_elements_count-1].evals->lua_script = strdup(lua_script);
+	}
+	else {
+		screen_elements[screen_elements_count-1].evals = NULL;
+	}
 	screen_elements[screen_elements_count-1].position = position;
 	screen_elements[screen_elements_count-1].type = SCREEN_IMG;
 	screen_elements[screen_elements_count-1].id = get_free_element_id();
@@ -222,7 +229,7 @@ uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_
  * @color the color which should be used
  * @return the unique id of the element, can be later used to remove it
  ******************************************************************************/
-uint_fast16_t screen_add_text(const screen_position position, const char *text, const uint_fast16_t font_size, const char *font, const Color color) {
+uint_fast16_t screen_add_text(const screen_position position, const char *text, const uint_fast16_t font_size, const char *font, const Color color, char *lua_script) {
 	screen_elements_count++;
 	REALLOC(new_screen_elements, screen_elements, sizeof(screen_element) * screen_elements_count);
 
@@ -246,6 +253,14 @@ uint_fast16_t screen_add_text(const screen_position position, const char *text, 
 	attr_text->text = strdup(text);
 	FAIL_ON_NULL(attr_text->text, "Failed to copy text, while adding text to screen elements");
 
+	if( lua_script != NULL ) {
+		MALLOC(screen_elements[screen_elements_count-1].evals, sizeof(screen_evals));
+		screen_elements[screen_elements_count-1].evals->lua_state = NULL;
+		screen_elements[screen_elements_count-1].evals->lua_script = strdup(lua_script);
+	}
+	else {
+		screen_elements[screen_elements_count-1].evals = NULL;
+	}
 	screen_elements[screen_elements_count-1].position = position;
 	screen_elements[screen_elements_count-1].type = SCREEN_TEXT;
 	screen_elements[screen_elements_count-1].id = get_free_element_id();
@@ -264,11 +279,11 @@ uint_fast16_t screen_add_text(const screen_position position, const char *text, 
  * @color the color which should be used
  * @return the unique id of the element, can be later used to remove it
  ******************************************************************************/
-uint_fast16_t screen_add_clock(const screen_position position, char *format, const uint_fast16_t font_size, const char *font, const Color color) {
+uint_fast16_t screen_add_clock(const screen_position position, char *format, const uint_fast16_t font_size, const char *font, const Color color, char *lua_script) {
 	if( format == NULL ) {
 		format = strdup("%H:%M");
 	}
-	uint_fast16_t id = screen_add_text(position, format, font_size, font, color);
+	uint_fast16_t id = screen_add_text(position, format, font_size, font, color, lua_script);
 	screen_elements[screen_elements_count-1].type = SCREEN_CLOCK;
 	return id;
 }
@@ -352,6 +367,9 @@ static void draw_img(const screen_element *element) {
 static void draw_element(const screen_element *element) {
 //static screen_element *screen_elements;
 //static uint_fast32_t screen_elements_count;
+	if( element->evals != NULL ) {
+		printf("%s\n", element->evals->lua_script);
+	}
 	switch( element->type ) {
 		case SCREEN_TEXT:
 			draw_text(element);

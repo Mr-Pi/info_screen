@@ -77,6 +77,10 @@ static void layout_add_img(screen_position *position, cJSON *attrs) {
 		background_color = NULL;
 	}
 
+	char *str_evals;
+	cJSON *cjson_evals = cJSON_GetObjectItemCaseSensitive(attrs, "evals");
+	CJSON_DEF_STR(str_evals, cjson_evals, NULL);
+
 	LOG_DEBUG("Add image to layout: %s", str_src);
 	
 	screen_resize resize_type;
@@ -92,7 +96,7 @@ static void layout_add_img(screen_position *position, cJSON *attrs) {
 
 	screen_attrs_img *attr_img = screen_prepare_image(position, resize_type, str_src, background_color);
 	if( attr_img != NULL ) {
-		screen_add_img(*position, *attr_img);
+		screen_add_img(*position, *attr_img, str_evals);
 	}
 	else {
 		LOG_ERROR("Failed to add image in layout!!!");
@@ -107,7 +111,11 @@ static void layout_add_text(screen_position *position, cJSON *attrs) {
 
 	screen_attrs_text attrs_text = layout_parse_attrs_text(attrs);
 
-	screen_add_text(*position, text, attrs_text.font_size, attrs_text.font_name, attrs_text.color);
+	char *str_evals;
+	cJSON *cjson_evals = cJSON_GetObjectItemCaseSensitive(attrs, "evals");
+	CJSON_DEF_STR(str_evals, cjson_evals, NULL);
+
+	screen_add_text(*position, text, attrs_text.font_size, attrs_text.font_name, attrs_text.color, str_evals);
 }
 
 static void layout_add_clock(screen_position *position, cJSON *attrs) {
@@ -118,7 +126,11 @@ static void layout_add_clock(screen_position *position, cJSON *attrs) {
 
 	screen_attrs_text attrs_text = layout_parse_attrs_text(attrs);
 
-	screen_add_clock(*position, format, attrs_text.font_size, attrs_text.font_name, attrs_text.color);
+	char *str_evals;
+	cJSON *cjson_evals = cJSON_GetObjectItemCaseSensitive(attrs, "evals");
+	CJSON_DEF_STR(str_evals, cjson_evals, NULL);
+
+	screen_add_clock(*position, format, attrs_text.font_size, attrs_text.font_name, attrs_text.color, str_evals);
 }
 
 static inline screen_position layout_parse_position(cJSON *cjson_position) {
