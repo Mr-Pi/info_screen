@@ -1,0 +1,9 @@
+{
+	"layout": "stuvus_cb",
+	"fps": 60,
+	"name": "gt70",
+	"resolution": {
+		"height": 500,
+		"width": 1000
+	}
+}
