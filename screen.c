@@ -25,7 +25,7 @@ static uint_fast32_t get_free_element_id() {
 	bool unique;
 	for( uint_fast32_t id = 0; id < screen_elements_count; id++ ) {
 		unique = true;
-		for( uint_fast32_t i = 0; i < screen_elements_count; i++ ) {
+		for( uint_fast32_t i = 0; i < screen_elements_count - 1; i++ ) {
 			if( screen_elements[i].id == id ) {
 				unique = false;
 				break;
@@ -35,6 +35,7 @@ static uint_fast32_t get_free_element_id() {
 			return id;
 		}
 	}
+	LOG_WARNING("No free element ID aviable");
 	return UINT_FAST32_MAX;
 }
 
