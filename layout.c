@@ -59,7 +59,7 @@ static screen_attrs_text layout_parse_attrs_text(cJSON *attrs) {
 	return attrs_text;
 }
 
-static void layout_add_img(screen_position *position, cJSON *attrs) {
+static void layout_add_img(screen_position *position, cJSON *attrs, char *str_evals) {
 	char *str_src;
 	cJSON *cjson_src = cJSON_GetObjectItemCaseSensitive(attrs, "src");
 	CJSON_DEF_STR(str_src, cjson_src, NULL);
@@ -76,10 +76,6 @@ static void layout_add_img(screen_position *position, cJSON *attrs) {
 	else {
 		background_color = NULL;
 	}
-
-	char *str_evals;
-	cJSON *cjson_evals = cJSON_GetObjectItemCaseSensitive(attrs, "evals");
-	CJSON_DEF_STR(str_evals, cjson_evals, NULL);
 
 	LOG_DEBUG("Add image to layout: %s", str_src);
 	
@@ -103,7 +99,7 @@ static void layout_add_img(screen_position *position, cJSON *attrs) {
 	}
 }
 
-static void layout_add_text(screen_position *position, cJSON *attrs) {
+static void layout_add_text(screen_position *position, cJSON *attrs, char *str_evals) {
 	cJSON *cjson_text = cJSON_GetObjectItemCaseSensitive(attrs, "text");
 	char *text;
 	CJSON_DEF_STR(text, cjson_text, "");
@@ -111,24 +107,16 @@ static void layout_add_text(screen_position *position, cJSON *attrs) {
 
 	screen_attrs_text attrs_text = layout_parse_attrs_text(attrs);
 
-	char *str_evals;
-	cJSON *cjson_evals = cJSON_GetObjectItemCaseSensitive(attrs, "evals");
-	CJSON_DEF_STR(str_evals, cjson_evals, NULL);
-
 	screen_add_text(*position, text, attrs_text.font_size, attrs_text.font_name, attrs_text.color, str_evals);
 }
 
-static void layout_add_clock(screen_position *position, cJSON *attrs) {
+static void layout_add_clock(screen_position *position, cJSON *attrs, char *str_evals) {
 	cJSON *cjson_format = cJSON_GetObjectItemCaseSensitive(attrs, "format");
 	char *format;
 	CJSON_DEF_STR(format, cjson_format, "%H:%M");
 	LOG_DEBUG("Add clock with format to layout: %s", format);
 
 	screen_attrs_text attrs_text = layout_parse_attrs_text(attrs);
-
-	char *str_evals;
-	cJSON *cjson_evals = cJSON_GetObjectItemCaseSensitive(attrs, "evals");
-	CJSON_DEF_STR(str_evals, cjson_evals, NULL);
 
 	screen_add_clock(*position, format, attrs_text.font_size, attrs_text.font_name, attrs_text.color, str_evals);
 }
@@ -176,15 +164,19 @@ static void parse_frame(cJSON *cjson_frame) {
 
 	screen_position position = layout_parse_position(cjson_frame);
 
+	char *str_evals;
+	cJSON *cjson_evals = cJSON_GetObjectItemCaseSensitive(cjson_frame, "evals");
+	CJSON_DEF_STR(str_evals, cjson_evals, NULL);
+
 	cJSON *attrs = cJSON_GetObjectItemCaseSensitive(cjson_frame, "attrs");
 	if( strcmp("text", type) == 0 ) {
-		layout_add_text(&position, attrs);
+		layout_add_text(&position, attrs, str_evals);
 	}
 	else if( strcmp("clock", type) == 0 ) {
-		layout_add_clock(&position, attrs);
+		layout_add_clock(&position, attrs, str_evals);
 	}
 	else if( strcmp("img", type) == 0 ) {
-		layout_add_img(&position, attrs);
+		layout_add_img(&position, attrs, str_evals);
 	}
 }
 

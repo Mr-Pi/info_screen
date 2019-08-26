@@ -206,7 +206,7 @@ uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_
 	if( lua_script != NULL ) {
 		MALLOC(screen_elements[screen_elements_count-1].evals, sizeof(screen_evals));
 		screen_elements[screen_elements_count-1].evals->lua_state = NULL;
-		screen_elements[screen_elements_count-1].evals->lua_script = strdup(lua_script);
+		screen_elements[screen_elements_count-1].evals->lua_script = lua_script;
 	}
 	else {
 		screen_elements[screen_elements_count-1].evals = NULL;
@@ -256,7 +256,7 @@ uint_fast16_t screen_add_text(const screen_position position, const char *text, 
 	if( lua_script != NULL ) {
 		MALLOC(screen_elements[screen_elements_count-1].evals, sizeof(screen_evals));
 		screen_elements[screen_elements_count-1].evals->lua_state = NULL;
-		screen_elements[screen_elements_count-1].evals->lua_script = strdup(lua_script);
+		screen_elements[screen_elements_count-1].evals->lua_script = lua_script;
 	}
 	else {
 		screen_elements[screen_elements_count-1].evals = NULL;
