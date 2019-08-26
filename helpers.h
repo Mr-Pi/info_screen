@@ -69,6 +69,19 @@
 	else if( _val_ > UINT_FAST16_MAX ) _dest_ = UINT_FAST16_MAX; \
 	else _dest_ = (uint_fast16_t)_val_;
 
+#define LUA_SET_NUMBER(_lua_state_, _dest_value_, _value_) \
+	lua_pushnumber(_lua_state_, _value_); \
+	lua_setglobal(_lua_state_, _dest_value_);
+
+#define LUA_GET_NUMBER(_lua_state_, _src_value_, _dest_value_, _dest_value_type_) \
+	lua_getglobal(_lua_state_, _src_value_); \
+	_dest_value_ = (_dest_value_type_)lua_tointeger(_lua_state_, -1);
+
+#define LUA_CLEAN_STACK(_lua_state_) \
+	for(int stack_size = lua_gettop(_lua_state_); stack_size > 0; stack_size--) { \
+		lua_remove(_lua_state_, -1); \
+	}
+
 int pstrcmp(const void *a, const void *b);
 Color parse_color_str(char *str_color);
 int test_filename_extension(char *filename, char *ext);

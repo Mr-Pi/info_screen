@@ -204,6 +204,11 @@ uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_
 	attr_img->resize_type = attr_img_in.resize_type;
 	attr_img->image = ImageCopy(attr_img_in.image);
 
+	screen_elements[screen_elements_count-1].position = position;
+	screen_elements[screen_elements_count-1].type = SCREEN_IMG;
+	screen_elements[screen_elements_count-1].id = get_free_element_id();
+	screen_elements[screen_elements_count-1].attrs = attr_img;
+
 	if( lua_script != NULL ) {
 		MALLOC(screen_elements[screen_elements_count-1].evals, sizeof(screen_evals));
 		screen_elements[screen_elements_count-1].evals->lua_state = NULL;
@@ -212,10 +217,6 @@ uint_fast16_t screen_add_img(const screen_position position, const screen_attrs_
 	else {
 		screen_elements[screen_elements_count-1].evals = NULL;
 	}
-	screen_elements[screen_elements_count-1].position = position;
-	screen_elements[screen_elements_count-1].type = SCREEN_IMG;
-	screen_elements[screen_elements_count-1].id = get_free_element_id();
-	screen_elements[screen_elements_count-1].attrs = attr_img;
 
 	LOG_DEBUG("Added screen_element %lu with id %lu", screen_elements_count, screen_elements[screen_elements_count-1].id);
 	return screen_elements[screen_elements_count-1].id;
@@ -254,6 +255,11 @@ uint_fast16_t screen_add_text(const screen_position position, const char *text, 
 	attr_text->text = strdup(text);
 	FAIL_ON_NULL(attr_text->text, "Failed to copy text, while adding text to screen elements");
 
+	screen_elements[screen_elements_count-1].position = position;
+	screen_elements[screen_elements_count-1].type = SCREEN_TEXT;
+	screen_elements[screen_elements_count-1].id = get_free_element_id();
+	screen_elements[screen_elements_count-1].attrs = attr_text;
+
 	if( lua_script != NULL ) {
 		MALLOC(screen_elements[screen_elements_count-1].evals, sizeof(screen_evals));
 		screen_elements[screen_elements_count-1].evals->lua_state = NULL;
@@ -262,10 +268,6 @@ uint_fast16_t screen_add_text(const screen_position position, const char *text, 
 	else {
 		screen_elements[screen_elements_count-1].evals = NULL;
 	}
-	screen_elements[screen_elements_count-1].position = position;
-	screen_elements[screen_elements_count-1].type = SCREEN_TEXT;
-	screen_elements[screen_elements_count-1].id = get_free_element_id();
-	screen_elements[screen_elements_count-1].attrs = attr_text;
 
 	LOG_DEBUG("Added screen_element %lu with id %lu", screen_elements_count, screen_elements[screen_elements_count-1].id);
 	return screen_elements[screen_elements_count-1].id;
@@ -293,7 +295,7 @@ uint_fast16_t screen_add_clock(const screen_position position, char *format, con
  * Draw text from element on screen
  * @element the element to beed drawn
  ******************************************************************************/
-static void draw_text(const screen_element *element) {
+static void draw_text(screen_element *element) {
 	screen_attrs_text *attr_text = (screen_attrs_text *)element->attrs;
 
 	Vector2 text_size;
@@ -318,6 +320,9 @@ static void draw_text(const screen_element *element) {
 			x += element->position.w/2 - text_size.x/2;
 		}
 	}
+	else {
+		UINT_FAST16_T(element->position.w, text_size.x);
+	}
 	if( element->position.h > 0 ) {
 		if( element->position.vertical == ALIGN_BOTTOM ) {
 			y += element->position.h - text_size.y;
@@ -325,6 +330,9 @@ static void draw_text(const screen_element *element) {
 		else if( element->position.vertical == ALIGN_MIDDLE ) {
 			y += element->position.h/2 - text_size.y/2;
 		}
+	}
+	else {
+		UINT_FAST16_T(element->position.h, text_size.y);
 	}
 
 	if( attr_text->font_name == NULL ) {
@@ -361,15 +369,32 @@ static void draw_img(const screen_element *element) {
 	DrawTexture(*attr_img->texture, element->position.x, element->position.y, (Color){255,255,255,255});
 }
 
+static void eval_lua(screen_element *element) {
+	if( element->evals->lua_state == NULL ) {
+		LOG_DEBUG("Init lua state for element id %lu", element->id);
+		element->evals->lua_state = luaL_newstate();
+	}
+	LUA_SET_NUMBER(element->evals->lua_state, "x", element->position.x);
+	LUA_SET_NUMBER(element->evals->lua_state, "y", element->position.y);
+	LUA_SET_NUMBER(element->evals->lua_state, "w", element->position.w);
+	LUA_SET_NUMBER(element->evals->lua_state, "h", element->position.h);
+	luaL_dostring(element->evals->lua_state, element->evals->lua_script);
+	LUA_GET_NUMBER(element->evals->lua_state, "x", element->position.x, uint_fast16_t);
+	LUA_GET_NUMBER(element->evals->lua_state, "y", element->position.y, uint_fast16_t);
+	LUA_GET_NUMBER(element->evals->lua_state, "w", element->position.w, uint_fast16_t);
+	LUA_GET_NUMBER(element->evals->lua_state, "h", element->position.h, uint_fast16_t);
+	LUA_CLEAN_STACK(element->evals->lua_state);
+}
+
 /*******************************************************************************
  * Actually draw the selected screen element
  * @param i the index of the screen element to draw
  ******************************************************************************/
-static void draw_element(const screen_element *element) {
+static void draw_element(screen_element *element) {
 //static screen_element *screen_elements;
 //static uint_fast32_t screen_elements_count;
 	if( element->evals != NULL ) {
-		printf("%s\n", element->evals->lua_script);
+		eval_lua(element);
 	}
 	switch( element->type ) {
 		case SCREEN_TEXT:
