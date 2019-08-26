@@ -12,6 +12,7 @@
 				"font-size": 100,
 				"format": "%H:%M:%S"
 			},
+			"evals": "if not a then a=1 end; if a == 1 then y=y+1 else y=y-1 end; if y >= 300 then a=0 elseif y <= 10 then a=1 end; x=y*2",
 			"valign": "middle"
 		},
 		{
@@ -23,8 +24,9 @@
 			"attrs": {
 				"src": "test-pattern-152459_1280.png",
 				"format": "proper",
-				"background-color": "#ff0000"
-			}
+				"background-color": "#ff00007d"
+			},
+			"evals": "if not a then a=1 end; if a == 1 then w=w+1 else w=w-1 end; if w >= 500 then a=0 elseif w <= 10 then a=1 end"
 		},
 		{
 			"x": 100,
@@ -33,7 +35,8 @@
 			"h": 500,
 			"type": "slide",
 			"attrs": {
-				"name": "main_content"
+				"name": "main_content",
+				"interval": 10
 			}
 		},
 		{
